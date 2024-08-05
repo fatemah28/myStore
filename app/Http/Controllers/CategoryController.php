@@ -11,6 +11,6 @@ class CategoryController extends Controller
     public function showAllCategories(){
         $categories=Category::all();
         // dd($categories);
-        return view('home',compact('categories'));
+        return view('welcome',compact('categories'));
     }
 }
