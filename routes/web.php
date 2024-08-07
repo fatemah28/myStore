@@ -27,3 +27,7 @@ Auth::routes();
 Route::get('/admin/categories', [App\Http\Controllers\HomeController::class, 'showCategories'])->name('categories');
 Route::get('/admin/categories/create', [App\Http\Controllers\HomeController::class, 'adminCreateCategory'])->name('adminCreateCategory');
 Route::post('/admin/categories/store', [App\Http\Controllers\HomeController::class, 'adminCategoryStore'])->name('adminCategoryStore');
+Route::get('/admin/categories/edit/{id}', [App\Http\Controllers\HomeController::class, 'adminEditCategory'])->name('adminEditCategory');
+Route::post('/admin/categories/update/{id}', [App\Http\Controllers\HomeController::class, 'adminCategoryUpdate'])->name('adminCategoryUpdate');
+Route::get('/admin/categories/delete/{id}', [App\Http\Controllers\HomeController::class, 'adminDeleteCategory'])->name('adminDeleteCategory');
+Route::post('/admin/categories/destroy/{id}', [App\Http\Controllers\HomeController::class, 'adminCategoryDestroy'])->name('adminCategoryDestroy');

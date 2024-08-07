@@ -12,13 +12,13 @@
 				</div>
 
                 <div class="card-body">
-                    {{-- @if (session('status'))
+                    @if (session('message'))
                         <div class="alert alert-success" role="alert">
-                            {{ session('status') }}
+                            {{ session('message') }}
                         </div>
                     @endif
 
-                    {{ __('You are logged in!') }} --}}
+                    {{ __('You are logged in!') }}
 					<table class="table">
 						<thead>
 						  <tr>
@@ -36,7 +36,8 @@
 							<td>{{$category->name}}</td>
 							<td><img  style="width: 100px;height=100px;" src="{{Storage::url($category->image)}}" alt=""></td>
 							<td>{{$category->created_at}}</td>
-							<td><a href="" target="_blank">Edit</a> <a href="">Delete</a></td>
+							<td><a href="{{route('adminEditCategory',$category->id)}}">Edit</a> 
+								<a href="{{route('adminDeleteCategory',$category->id)}}">Delete</a></td>
 						  </tr>
 						  @endforeach
 						</tbody>
