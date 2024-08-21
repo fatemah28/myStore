@@ -2,9 +2,14 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Cart;
 use App\Models\Category;
+use App\Models\Product;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
+
+use function Laravel\Prompts\alert;
 
 class HomeController extends Controller
 {
@@ -13,68 +18,142 @@ class HomeController extends Controller
      *
      * @return void
      */
-    public function __construct()
-    {
-        $this->middleware('auth');
-    }
 
     /**
      * Show the application dashboard.
      *
      * @return \Illuminate\Contracts\Support\Renderable
      */
-    // public function index()
-    // {
-    //     return view('home');
+    // public function __construct(){
+    //     $this->middleware('auth')->only('addToCart');
     // }
-    public function showCategories()
+    public function index()
     {
-        $categries = Category::all();
-        return view('home', compact('categries'));
+        $categories = Category::all();
+        // dd($categories);
+        return view('client.home', compact('categories'));
     }
-    public function adminCreateCategory()
+    public function GetClientProducts()
     {
-        return view('admin.categories.create');
+        $products = Product::get();
+        // dd($products);
+        return view('client.Products', compact('products'));
     }
-    public function adminCategoryStore(Request $request)
-    {
-        // dd($request);
-        $category = new Category();
-        $category->name = $request->name;
-        $imageUrl = $request->file('image')->store('categories', 'public');
-        $category->image = $imageUrl;
-        $category->save();
-        return redirect()->route('categories')->with('message', "Category Created Successfully");
-    }
-    public function adminEditCategory($id)
+    public function getProductsByCategory($id)
     {
         $category = Category::find($id);
-        return view('admin.categories.edit', compact('category'));
+        // dd($category);
+        $products = Product::where('category_id', $category->id)->get();
+        // dd($products);
+        return view('client.ProductsByCategory', compact('products', 'category'));
     }
-    public function adminCategoryUpdate(Request $request,$id){
-$category=Category::find($id);
-    if($request->hasFile('image')){
-        Storage::disk('public')->delete($category->image);
-        $imageUrl=$request->file('image')->store('categories','public');
-        $category->update([
-            'image'=>$imageUrl,
+    public function shop()
+    {
+        $categories = Category::all();
+        // dd($category);
+        $products = Product::paginate(4);
+        // dd($products);
+        return view('client.shop', compact('products', 'categories'));
+    }
+    public function addToCart(Request $request)
+    {
+        $product = Product::find($request->product_id);
+        // dd($product);
+        // try {
+            $cartItem = Cart::where('user_id', $request->user_id)
+                        ->where('product_id', $request->product_id)
+                        ->first();
+            // dd($cartItem);
+            if ($cartItem) {
+                $cartItem->quantity++;
+                $cartItem->save();
+            } else {
+                Cart::create([
+                    'user_id' => $request->user_id,
+                    'product_id' => $request->product_id,
+                    'price' => $product->price,
+                    'quantity' => $request->quantity
+                ]);
+                return response()->json(['message' => 'Product added to cart!']);
+            }
+            //    }
+        // } catch (\Exception $e) {
+            // return response()->json(['message' => 'An error occurred'], 500);
+        // }
+    }
+    public function cart()
+    {
+        $cart = Cart::where('user_id', auth()->user()->id)->get();
+        $itemsForAuthUser = Cart::where('user_id', auth()->user()->id)->get();
+        $totalSum = $itemsForAuthUser->sum(function ($item) {
+            return $item->quantity * $item->price;
+        });
+        // dd($itemsForAuthUser);
+        return view('client.cart', compact('cart', 'totalSum'));
+    }
+    public function updateCart(Request $request)
+    {
+        $item = Cart::find($request->item_id);
+
+        try {
+            $item->update([
+                'quantity' => $request->quantity,
+
+            ]);
+        } catch (\Exception $e) {
+            return response()->json(['message' => 'An error occurred'], 500);
+        }
+        $itemsForAuthUser = Cart::where('user_id', auth()->user()->id)->get();
+        $totalSum = $itemsForAuthUser->sum(function ($item) {
+            return $item->quantity * $item->price;
+        });
+        return response()->json([
+            'totalSum' => $totalSum,
         ]);
     }
-    $category->update([
-        'name'=>$request->name
-    ]);
-    return redirect()->route('categories')->with('message','Category Updated Successfully');
-}
-    public function adminDeleteCategory($id)
+    public function updateCartTable()
     {
-        $category = Category::find($id);
-        return view('admin.categories.delete', compact('category'));
-    }
-    public function adminCategoryDestroy($id){
-$category=Category::find($id);
+        $cart = Cart::where('user_id', auth()->id())->get();
+        $totalSum = $cart->sum(function ($item) {
+            return $item->quantity * $item->price;
+        });
 
-    $category->delete();
-    return redirect()->route('categories')->with('message','Category Deleted Successfully');
-}
-    
+        return response()->json([
+            'status' => 'success',
+            'html' => view('client._cart', compact('cart', 'totalSum'))->render()
+        ]);
+    }
+    public function downloadCartPdf()
+    {
+        $itemsForAuthUser = Cart::where('user_id', auth()->id())->get();
+
+        // Calculate the total sum
+        $totalSum = $itemsForAuthUser->sum(function ($item) {
+            return $item->quantity * $item->price;
+        });
+
+        // Load the view and pass the data
+        $pdf = Pdf::loadView('client.cart_pdf', compact('itemsForAuthUser', 'totalSum'))->setOptions(['defaultFont' => 'sans-serif']);
+
+        // Download the generated PDF
+        return $pdf->download('client.cart_pdf');
+    }
+    public function removeItem(Request $request)
+    {
+        $item = Cart::find($request->item_id);
+        if ($item) {
+
+            $item->delete();
+            return response()->json([
+                'status' => 'success',
+                'message' => 'Item removed from cart'
+            ]);
+        } else {
+
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Item not found or unauthorized'
+            ], 403);
+        }
+    }
 }
