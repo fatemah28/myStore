@@ -51,7 +51,7 @@ class HomeController extends Controller
     {
         $categories = Category::all();
         // dd($category);
-        $products = Product::paginate(4);
+        $products = Product::paginate(6);
         // dd($products);
         return view('client.shop', compact('products', 'categories'));
     }

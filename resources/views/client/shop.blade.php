@@ -35,9 +35,9 @@
                 @foreach ($products as $product)
                     {{-- @dd($product->category->name) --}}
                     <div class="col-lg-4 col-md-6 text-center {{ $product->category->name }}">
-                        <div class="single-product-item">
-                            <div class="product-image">
-                                <a href="#"><img src="{{ Storage::url($product->image) }}" alt=""></a>
+                        <div class="single-product-item" >
+                            <div class="product-image" >
+                               <img src="{{ Storage::url($product->image) }}" alt="">
                             </div>
                             <h3>{{ $product->name }}</h3>
                             <p class="product-price"><span>Per Kg</span> {{ $product->price }}$ </p>

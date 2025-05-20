@@ -10,7 +10,7 @@
                             <thead class="cart-table-head">
                                 <tr class="table-head-row">
                                     <th class="product-remove"></th>
-                                    <th class="product-image">Product Image</th>
+                                    <th class="product-img">Product Image</th>
                                     <th class="product-name">Name</th>
                                     <th class="product-price">Price</th>
                                     <th class="product-quantity">Quantity</th>
@@ -53,7 +53,7 @@
                     <div id="removeMessage"></div>
                 </div>
 
-                <div class="col-lg-4">
+                <div class="col-lg-4 col-md-12">
                     <div class="total-section">
                         <table class="total-table">
                             <thead class="total-table-head">
